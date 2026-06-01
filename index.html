@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cartera Vencida · DIPOR 2021–2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#0033aa;--blue-dark:#00228a;--blue-light:#e8eeff;--blue-mid:#3358cc;
+  --green:#059669;--green-bg:#ecfdf5;--green-mid:#34d399;
+  --amber:#d97706;--amber-bg:#fffbeb;
+  --red:#dc2626;--red-bg:#fef2f2;--red-dark:#991b1b;
+  --gray50:#f8fafc;--gray100:#f1f5f9;--gray200:#e2e8f0;
+  --gray300:#cbd5e1;--gray500:#64748b;--gray700:#334155;--gray900:#0f172a;
+  --white:#ffffff;
+  --sans:'Inter',sans-serif;--mono:'IBM Plex Mono',monospace;
+  --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--gray50);color:var(--gray900);font-size:14px;line-height:1.5}
+/* ── TOPBAR ── */
+.topbar{background:var(--blue);color:#fff;padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,51,170,.25)}
+.topbar-brand{display:flex;align-items:center;gap:12px}
+.topbar-logo{width:32px;height:32px;background:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.topbar-logo img{width:28px;height:28px;object-fit:contain}
+.topbar-title{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.topbar-sub{font-size:11px;opacity:.7;font-weight:300}
+.topbar-right{font-family:var(--mono);font-size:10px;opacity:.65;text-align:right}
+/* ── SHELL ── */
+.shell{max-width:1200px;margin:0 auto;padding:28px 24px 60px}
+/* ── FILTER BAR ── */
+.filter-bar{background:var(--white);border:1px solid var(--gray200);border-radius:var(--radius);padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;box-shadow:var(--shadow)}
+.filter-label{font-size:11px;font-weight:600;color:var(--gray500);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.year-filters{display:flex;gap:8px;flex-wrap:wrap}
+.yr-btn{font-family:var(--mono);font-size:11px;font-weight:500;padding:5px 12px;border-radius:4px;border:1.5px solid var(--gray200);background:var(--white);color:var(--gray700);cursor:pointer;transition:all .15s}
+.yr-btn.active{border-color:var(--blue);background:var(--blue-light);color:var(--blue-dark)}
+.yr-btn:hover:not(.active){border-color:var(--gray300);background:var(--gray50)}
+.filter-sep{width:1px;height:24px;background:var(--gray200);flex-shrink:0}
+.metric-toggle{display:flex;border:1.5px solid var(--gray200);border-radius:4px;overflow:hidden}
+.mt-btn{font-size:11px;font-weight:500;padding:5px 14px;border:none;background:var(--white);color:var(--gray500);cursor:pointer;transition:all .15s}
+.mt-btn.active{background:var(--blue);color:#fff}
+.all-toggle{font-size:11px;font-weight:500;padding:5px 12px;border-radius:4px;border:1.5px solid var(--gray200);background:var(--white);color:var(--gray500);cursor:pointer;transition:all .15s}
+.all-toggle:hover{border-color:var(--blue);color:var(--blue)}
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.kpi-card{background:var(--white);border:1px solid var(--gray200);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:box-shadow .2s}
+.kpi-card:hover{box-shadow:var(--shadow-md)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-card.blue::before{background:var(--blue)}
+.kpi-card.green::before{background:var(--green)}
+.kpi-card.red::before{background:var(--red)}
+.kpi-card.amber::before{background:var(--amber)}
+.kpi-label{font-size:10px;font-weight:600;color:var(--gray500);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.kpi-value{font-size:30px;font-weight:300;letter-spacing:-.03em;line-height:1}
+.kpi-meta{font-size:11px;color:var(--gray500);margin-top:6px;font-family:var(--mono)}
+.kpi-delta{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;font-family:var(--mono);padding:2px 7px;border-radius:3px;margin-top:8px}
+.delta-up{background:var(--red-bg);color:var(--red-dark)}
+.delta-down{background:var(--green-bg);color:var(--green)}
+.delta-neutral{background:var(--gray100);color:var(--gray500)}
+/* ── INSIGHT BAR ── */
+.insight-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.ins-card{background:var(--white);border:1px solid var(--gray200);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);border-left:3px solid}
+.ins-card.positive{border-left-color:var(--green)}
+.ins-card.negative{border-left-color:var(--red)}
+.ins-card.neutral{border-left-color:var(--amber)}
+.ins-icon{font-size:16px;margin-bottom:6px}
+.ins-title{font-size:12px;font-weight:600;color:var(--gray900);margin-bottom:4px}
+.ins-body{font-size:11px;color:var(--gray500);line-height:1.6}
+.ins-body strong{color:var(--gray700);font-weight:600}
+/* ── CHART PANELS ── */
+.chart-panel{background:var(--white);border:1px solid var(--gray200);border-radius:var(--radius);padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px}
+.panel-title{font-size:13px;font-weight:600;color:var(--gray900)}
+.panel-sub{font-size:11px;color:var(--gray500);margin-top:2px}
+.chart-wrap{position:relative;height:260px}
+.chart-wrap-sm{position:relative;height:200px}
+.legend-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--gray100)}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray500);font-family:var(--mono)}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+/* ── HEATMAP ── */
+.hm-section{background:var(--white);border:1px solid var(--gray200);border-radius:var(--radius);padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow)}
+.hm-grid{display:grid;grid-template-columns:48px repeat(12,1fr);gap:4px;margin-top:12px}
+.hm-head{font-family:var(--mono);font-size:9px;color:var(--gray500);text-align:center;padding:4px 0;font-weight:500}
+.hm-yr{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--gray700);text-align:right;padding-right:10px;display:flex;align-items:center;justify-content:flex-end}
+.hm-cell{border-radius:5px;height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;font-family:var(--mono)}
+.hm-cell:hover{transform:scale(1.1);box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:10}
+.hm-cell .pct-val{font-size:9.5px;font-weight:600;line-height:1.2}
+.hm-cell .mon-val{font-size:8px;opacity:.75;line-height:1}
+.hm-empty{border-radius:5px;height:40px;background:var(--gray100)}
+/* ── TOOLTIP ── */
+.cell-tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--gray900);color:#fff;border-radius:6px;padding:10px 14px;font-size:11px;white-space:nowrap;z-index:200;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.cell-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--gray900)}
+.hm-cell:hover .cell-tooltip{display:block}
+.tt-head{font-weight:600;margin-bottom:6px;font-size:12px}
+.tt-row{display:flex;justify-content:space-between;gap:16px;font-size:10px;opacity:.8;line-height:1.7}
+.tt-row span{font-weight:600;opacity:1}
+/* ── HM LEGEND ── */
+.hm-legend{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--gray100)}
+.hm-leg-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--gray500);font-family:var(--mono)}
+.hm-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+/* ── YEAR SUMMARY ── */
+.year-summary{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:24px}
+.yr-card{background:var(--white);border:1px solid var(--gray200);border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden;cursor:pointer;transition:box-shadow .2s}
+.yr-card:hover{box-shadow:var(--shadow-md)}
+.yr-card-year{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--gray500);margin-bottom:6px}
+.yr-card-val{font-size:24px;font-weight:300;letter-spacing:-.03em;line-height:1;margin-bottom:8px}
+.yr-track{height:4px;background:var(--gray100);border-radius:2px;margin-bottom:8px;overflow:hidden}
+.yr-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.yr-detail{font-size:10px;color:var(--gray500);font-family:var(--mono);line-height:1.6}
+/* ── BOTTOM PANEL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+/* ── DETAIL PANEL ── */
+.detail-panel{position:fixed;right:0;top:56px;width:300px;height:calc(100vh - 56px);background:var(--white);border-left:1px solid var(--gray200);transform:translateX(100%);transition:transform .3s ease;z-index:99;overflow-y:auto;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
+.detail-panel.open{transform:translateX(0)}
+.dp-header{background:var(--blue);color:#fff;padding:20px;position:sticky;top:0}
+.dp-title{font-size:15px;font-weight:600}
+.dp-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:4px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.dp-body{padding:20px}
+.dp-stat{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--gray100)}
+.dp-stat:last-child{border-bottom:none}
+.dp-stat-label{font-size:10px;font-weight:600;color:var(--gray500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.dp-stat-value{font-size:22px;font-weight:300;letter-spacing:-.02em}
+.dp-stat-sub{font-size:11px;color:var(--gray500);margin-top:2px}
+.dp-insight{background:var(--gray50);border-radius:6px;padding:12px;margin-top:16px;font-size:11px;color:var(--gray700);line-height:1.7}
+.dp-insight strong{color:var(--gray900);font-weight:600}
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--gray200);padding:20px 0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--gray500);font-family:var(--mono)}
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .insight-bar{grid-template-columns:1fr}
+  .year-summary{grid-template-columns:repeat(3,1fr)}
+  .two-col{grid-template-columns:1fr}
+  .shell{padding:16px 12px 40px}
+  .topbar{padding:0 16px}
+  .detail-panel{width:100%;top:56px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">
+      <img src="/mnt/user-data/uploads/1780335419719_image.png" alt="TONI" onerror="this.parentNode.innerHTML='<div style=\'color:#0033aa;font-weight:700;font-size:11px;\'>T</div>'">
+    </div>
+    <div>
+      <div class="topbar-title">Monitor de Cartera Vencida</div>
+      <div class="topbar-sub">DIPOR Ecuador · Jefatura Nacional de Cartera</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    Corte: Mayo 2026<br>
+    Obj. corporativo ≤ 4,99%
+  </div>
+</div>
+
+<div class="shell">
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <span class="filter-label">Años</span>
+  <div class="year-filters" id="yearFilters"></div>
+  <button class="all-toggle" id="btnAll" onclick="toggleAll()">Seleccionar todos</button>
+  <div class="filter-sep"></div>
+  <span class="filter-label">Ver</span>
+  <div class="metric-toggle">
+    <button class="mt-btn active" id="mtPct" onclick="setMetric('pct')">% Vencido</button>
+    <button class="mt-btn" id="mtMonto" onclick="setMetric('monto')">Monto USD</button>
+  </div>
+  <div class="filter-sep"></div>
+  <span class="filter-label">Umbrales</span>
+  <div class="metric-toggle">
+    <button class="mt-btn active" id="thOn" onclick="setThreshold(true)">Mostrar</button>
+    <button class="mt-btn" id="thOff" onclick="setThreshold(false)">Ocultar</button>
+  </div>
+</div>
+
+<!-- KPI ROW -->
+<div class="kpi-grid" id="kpiGrid">
+  <div class="kpi-card blue">
+    <div class="kpi-label">Promedio período</div>
+    <div class="kpi-value" id="kAvg">—</div>
+    <div class="kpi-meta" id="kAvgMeta">—</div>
+    <div class="kpi-delta" id="kAvgDelta"></div>
+  </div>
+  <div class="kpi-card green">
+    <div class="kpi-label">Meses bajo objetivo</div>
+    <div class="kpi-value" id="kOk">—</div>
+    <div class="kpi-meta" id="kOkMeta">—</div>
+  </div>
+  <div class="kpi-card amber">
+    <div class="kpi-label">Exposición actual</div>
+    <div class="kpi-value" id="kExp">—</div>
+    <div class="kpi-meta" id="kExpMeta">—</div>
+    <div class="kpi-delta" id="kExpDelta"></div>
+  </div>
+  <div class="kpi-card red">
+    <div class="kpi-label">Peor mes registrado</div>
+    <div class="kpi-value" id="kMax">—</div>
+    <div class="kpi-meta" id="kMaxMeta">—</div>
+  </div>
+</div>
+
+<!-- INSIGHT BAR -->
+<div class="insight-bar" id="insightBar">
+  <div class="ins-card positive">
+    <div class="ins-icon">↗</div>
+    <div class="ins-title" id="ins1Title">Señal positiva reciente</div>
+    <div class="ins-body" id="ins1Body">—</div>
+  </div>
+  <div class="ins-card negative">
+    <div class="ins-icon">⚠</div>
+    <div class="ins-title" id="ins2Title">Riesgo ponderado</div>
+    <div class="ins-body" id="ins2Body">—</div>
+  </div>
+  <div class="ins-card neutral">
+    <div class="ins-icon">≡</div>
+    <div class="ins-title" id="ins3Title">Tendencia estructural</div>
+    <div class="ins-body" id="ins3Body">—</div>
+  </div>
+</div>
+
+<!-- MAIN CHART -->
+<div class="chart-panel">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Evolución mensual — <span id="chartTitle">% cartera vencida</span></div>
+      <div class="panel-sub">Haz clic en cualquier punto para ver el detalle del mes · Haz clic en la leyenda para activar/desactivar líneas</div>
+    </div>
+  </div>
+  <div class="chart-wrap"><canvas id="mainChart" role="img" aria-label="Evolución mensual de cartera vencida"></canvas></div>
+  <div class="legend-row">
+    <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>Cartera vencida</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--amber);height:2px;width:18px;border-radius:0"></div>Objetivo 4,99%</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--green);height:2px;width:18px;border-radius:0"></div>Umbral interno 4,00%</div>
+  </div>
+</div>
+
+<!-- YEAR SUMMARY -->
+<div class="year-summary" id="yearSummary"></div>
+
+<!-- HEATMAP -->
+<div class="hm-section">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Mapa de calor — semáforo mensual</div>
+      <div class="panel-sub">Haz clic en cualquier celda para ver el análisis completo del mes</div>
+    </div>
+  </div>
+  <div class="hm-grid" id="hmGrid"></div>
+  <div class="hm-legend">
+    <div class="hm-leg-item"><div class="hm-swatch" style="background:#10b981"></div>≤ 4,00% Óptimo</div>
+    <div class="hm-leg-item"><div class="hm-swatch" style="background:#10b981;outline:2px solid #d97706;outline-offset:1px"></div>4,01–4,99% En objetivo</div>
+    <div class="hm-leg-item"><div class="hm-swatch" style="background:#fbbf24"></div>5–7% Alerta</div>
+    <div class="hm-leg-item"><div class="hm-swatch" style="background:#ef4444"></div>7–10% Rojo</div>
+    <div class="hm-leg-item"><div class="hm-swatch" style="background:#7f1d1d"></div>> 10% Crítico</div>
+  </div>
+</div>
+
+<!-- TWO COL: Monto vencido + variación MoM -->
+<div class="two-col">
+  <div class="chart-panel" style="margin-bottom:0">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Monto vencido absoluto (USD miles)</div>
+        <div class="panel-sub">El % no es suficiente: $3,4M vencidos al 15% no es lo mismo que $0,6M al 3%</div>
+      </div>
+    </div>
+    <div class="chart-wrap-sm"><canvas id="montoChart" role="img" aria-label="Monto vencido en USD por mes"></canvas></div>
+  </div>
+  <div class="chart-panel" style="margin-bottom:0">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Variación mes a mes (pp)</div>
+        <div class="panel-sub">Cambio en puntos porcentuales respecto al mes anterior</div>
+      </div>
+    </div>
+    <div class="chart-wrap-sm"><canvas id="momChart" role="img" aria-label="Variación mes a mes en puntos porcentuales"></canvas></div>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detailPanel">
+  <div class="dp-header">
+    <div class="dp-title" id="dpTitle">—</div>
+    <button class="dp-close" onclick="closeDetail()">✕</button>
+  </div>
+  <div class="dp-body">
+    <div class="dp-stat">
+      <div class="dp-stat-label">% Cartera vencida</div>
+      <div class="dp-stat-value" id="dpPct">—</div>
+      <div class="dp-stat-sub" id="dpPctSub">—</div>
+    </div>
+    <div class="dp-stat">
+      <div class="dp-stat-label">Monto vencido</div>
+      <div class="dp-stat-value" id="dpMonto">—</div>
+      <div class="dp-stat-sub" id="dpMontoSub">—</div>
+    </div>
+    <div class="dp-stat">
+      <div class="dp-stat-label">Saldo total de cartera</div>
+      <div class="dp-stat-value" id="dpSaldo">—</div>
+      <div class="dp-stat-sub" id="dpSaldoSub">—</div>
+    </div>
+    <div class="dp-stat">
+      <div class="dp-stat-label">Variación vs mes anterior</div>
+      <div class="dp-stat-value" id="dpMom">—</div>
+      <div class="dp-stat-sub" id="dpMomSub">—</div>
+    </div>
+    <div class="dp-stat">
+      <div class="dp-stat-label">Variación vs mismo mes año ant.</div>
+      <div class="dp-stat-value" id="dpYoy">—</div>
+      <div class="dp-stat-sub" id="dpYoySub">—</div>
+    </div>
+    <div class="dp-insight" id="dpInsight">—</div>
+  </div>
+</div>
+
+<div class="shell" style="padding-top:0">
+  <footer>
+    <span>DIPOR Ecuador · Jefatura Nacional de Cartera · Tonicorp</span>
+    <span>ene-2021 — may-2026 · 64 cortes · *2026 parcial</span>
+  </footer>
+</div>
+
+<script>
+// ── DATA ──
+const RAW=[
+  {y:2021,m:1, pct:9.25, saldo:16789,vig:15236,venc:1553},
+  {y:2021,m:2, pct:7.47, saldo:16490,vig:15258,venc:1232},
+  {y:2021,m:3, pct:6.04, saldo:17248,vig:16207,venc:1042},
+  {y:2021,m:4, pct:5.41, saldo:17688,vig:16731,venc:957},
+  {y:2021,m:5, pct:7.19, saldo:17104,vig:15875,venc:1230},
+  {y:2021,m:6, pct:7.89, saldo:17520,vig:16138,venc:1382},
+  {y:2021,m:7, pct:7.69, saldo:17209,vig:15885,venc:1324},
+  {y:2021,m:8, pct:6.01, saldo:17126,vig:16096,venc:1030},
+  {y:2021,m:9, pct:5.80, saldo:17905,vig:16867,venc:1038},
+  {y:2021,m:10,pct:7.24, saldo:17733,vig:16449,venc:1284},
+  {y:2021,m:11,pct:5.20, saldo:17702,vig:16780,venc:921},
+  {y:2021,m:12,pct:3.66, saldo:18286,vig:17616,venc:669},
+  {y:2022,m:1, pct:8.48, saldo:17953,vig:16431,venc:1522},
+  {y:2022,m:2, pct:8.05, saldo:18129,vig:16669,venc:1460},
+  {y:2022,m:3, pct:3.89, saldo:18827,vig:18095,venc:732},
+  {y:2022,m:4, pct:3.14, saldo:20293,vig:19656,venc:637},
+  {y:2022,m:5, pct:4.47, saldo:20852,vig:19919,venc:933},
+  {y:2022,m:6, pct:6.39, saldo:21039,vig:19694,venc:1345},
+  {y:2022,m:7, pct:6.40, saldo:21606,vig:20223,venc:1383},
+  {y:2022,m:8, pct:3.97, saldo:21552,vig:20697,venc:855},
+  {y:2022,m:9, pct:3.99, saldo:21654,vig:20789,venc:864},
+  {y:2022,m:10,pct:8.65, saldo:22893,vig:20912,venc:1981},
+  {y:2022,m:11,pct:4.10, saldo:21519,vig:20636,venc:883},
+  {y:2022,m:12,pct:3.27, saldo:21270,vig:20576,venc:695},
+  {y:2023,m:1, pct:6.46, saldo:21724,vig:20321,venc:1403},
+  {y:2023,m:2, pct:6.54, saldo:21486,vig:20081,venc:1405},
+  {y:2023,m:3, pct:4.32, saldo:21362,vig:20438,venc:923},
+  {y:2023,m:4, pct:6.24, saldo:21442,vig:20104,venc:1338},
+  {y:2023,m:5, pct:6.02, saldo:23178,vig:21783,venc:1395},
+  {y:2023,m:6, pct:3.47, saldo:22112,vig:21344,venc:768},
+  {y:2023,m:7, pct:6.01, saldo:21526,vig:20233,venc:1294},
+  {y:2023,m:8, pct:5.42, saldo:21301,vig:20146,venc:1155},
+  {y:2023,m:9, pct:5.35, saldo:21469,vig:20320,venc:1149},
+  {y:2023,m:10,pct:6.10, saldo:20966,vig:19686,venc:1280},
+  {y:2023,m:11,pct:5.98, saldo:21174,vig:19909,venc:1265},
+  {y:2023,m:12,pct:5.28, saldo:21271,vig:20147,venc:1124},
+  {y:2024,m:1, pct:7.22, saldo:19180,vig:17795,venc:1386},
+  {y:2024,m:2, pct:5.68, saldo:19354,vig:18254,venc:1100},
+  {y:2024,m:3, pct:7.17, saldo:20971,vig:19467,venc:1504},
+  {y:2024,m:4, pct:5.84, saldo:19749,vig:18595,venc:1154},
+  {y:2024,m:5, pct:9.79, saldo:21210,vig:19133,venc:2076},
+  {y:2024,m:6, pct:10.45,saldo:21619,vig:19359,venc:2259},
+  {y:2024,m:7, pct:8.97, saldo:20191,vig:18381,venc:1810},
+  {y:2024,m:8, pct:10.02,saldo:21282,vig:19149,venc:2133},
+  {y:2024,m:9, pct:14.99,saldo:22599,vig:19211,venc:3388},
+  {y:2024,m:10,pct:13.25,saldo:21258,vig:18441,venc:2817},
+  {y:2024,m:11,pct:9.20, saldo:20087,vig:18240,venc:1847},
+  {y:2024,m:12,pct:5.90, saldo:20181,vig:18990,venc:1190},
+  {y:2025,m:1, pct:7.33, saldo:20201,vig:18721,venc:1480},
+  {y:2025,m:2, pct:8.38, saldo:21210,vig:19433,venc:1777},
+  {y:2025,m:3, pct:10.87,saldo:20910,vig:18637,venc:2273},
+  {y:2025,m:4, pct:6.10, saldo:21085,vig:19799,venc:1285},
+  {y:2025,m:5, pct:5.30, saldo:21662,vig:20514,venc:1148},
+  {y:2025,m:6, pct:8.19, saldo:22620,vig:20768,venc:1852},
+  {y:2025,m:7, pct:5.77, saldo:22174,vig:20895,venc:1279},
+  {y:2025,m:8, pct:9.02, saldo:21386,vig:19457,venc:1929},
+  {y:2025,m:9, pct:7.62, saldo:21953,vig:20281,venc:1672},
+  {y:2025,m:10,pct:8.76, saldo:22359,vig:20399,venc:1960},
+  {y:2025,m:11,pct:11.46,saldo:23971,vig:21222,venc:2748},
+  {y:2025,m:12,pct:5.00, saldo:23493,vig:22318,venc:1174},
+  {y:2026,m:1, pct:9.70, saldo:22656,vig:20459,venc:2197},
+  {y:2026,m:2, pct:6.82, saldo:22128,vig:20619,venc:1509},
+  {y:2026,m:3, pct:2.42, saldo:22909,vig:22355,venc:554},
+  {y:2026,m:4, pct:3.34, saldo:23973,vig:23171,venc:802},
+  {y:2026,m:5, pct:3.80, saldo:23003,vig:22129,venc:873},
+];
+
+const MN=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const YEARS=[...new Set(RAW.map(d=>d.y))].sort();
+let selectedYears=new Set(YEARS);
+let metric='pct';
+let showThresholds=true;
+let mainChartObj=null,montoChartObj=null,momChartObj=null;
+
+function fmt(v,dec=1){return v.toFixed(dec).replace('.',',')+'%'}
+function fmtK(v){return '$'+Math.round(v).toLocaleString('es-EC')+'K'}
+function fmtM(v){return '$'+(v/1000).toFixed(2).replace('.',',')+'M'}
+function sign(v){return v>0?'+':'';}
+
+// ── YEAR FILTER BUTTONS ──
+function buildFilters(){
+  const c=document.getElementById('yearFilters');
+  c.innerHTML='';
+  YEARS.forEach(yr=>{
+    const b=document.createElement('button');
+    b.className='yr-btn'+(selectedYears.has(yr)?' active':'');
+    b.textContent=yr+(yr===2026?'*':'');
+    b.onclick=()=>toggleYear(yr,b);
+    c.appendChild(b);
+  });
+}
+function toggleYear(yr,btn){
+  if(selectedYears.has(yr)){if(selectedYears.size>1){selectedYears.delete(yr);btn.classList.remove('active');}}
+  else{selectedYears.add(yr);btn.classList.add('active');}
+  refresh();
+}
+function toggleAll(){
+  if(selectedYears.size===YEARS.length){selectedYears=new Set([YEARS[YEARS.length-1]]);buildFilters();}
+  else{selectedYears=new Set(YEARS);buildFilters();}
+  refresh();
+}
+function setMetric(m){
+  metric=m;
+  document.getElementById('mtPct').classList.toggle('active',m==='pct');
+  document.getElementById('mtMonto').classList.toggle('active',m==='monto');
+  document.getElementById('chartTitle').textContent=m==='pct'?'% cartera vencida':'monto vencido (USD miles)';
+  refresh();
+}
+function setThreshold(v){
+  showThresholds=v;
+  document.getElementById('thOn').classList.toggle('active',v);
+  document.getElementById('thOff').classList.toggle('active',!v);
+  refresh();
+}
+
+// ── FILTERED DATA ──
+function filtered(){return RAW.filter(d=>selectedYears.has(d.y));}
+function monthIdx(y,m){return y*12+m;}
+
+// ── COLOR ──
+function semColor(pct){
+  if(pct<=4.00) return '#10b981';
+  if(pct<=4.99) return '#059669';
+  if(pct<=7.00) return '#fbbf24';
+  if(pct<=10.0) return '#ef4444';
+  return '#7f1d1d';
+}
+function semColorLight(pct){
+  if(pct<=4.00) return '#d1fae5';
+  if(pct<=4.99) return '#a7f3d0';
+  if(pct<=7.00) return '#fef3c7';
+  if(pct<=10.0) return '#fee2e2';
+  return '#fecaca';
+}
+
+// ── KPIs ──
+function updateKPIs(){
+  const fd=filtered();
+  if(!fd.length) return;
+  const vals=fd.map(d=>d.pct);
+  const avg=vals.reduce((a,b)=>a+b)/vals.length;
+  const ok=vals.filter(v=>v<=4.99).length;
+  const last=RAW[RAW.length-1];
+  const prev=RAW[RAW.length-2];
+  const worstInFilter=fd.reduce((a,d)=>d.pct>a.pct?d:a);
+
+  document.getElementById('kAvg').textContent=fmt(avg);
+  document.getElementById('kAvg').style.color=avg<=4.99?'#059669':avg<=7?'#d97706':'#dc2626';
+  document.getElementById('kAvgMeta').textContent=fd.length+' cortes seleccionados';
+
+  document.getElementById('kOk').textContent=ok+' / '+fd.length;
+  document.getElementById('kOkMeta').textContent=Math.round(ok/fd.length*100)+'% del tiempo en objetivo';
+
+  document.getElementById('kExp').textContent=fmtK(last.venc);
+  document.getElementById('kExpMeta').textContent=fmt(last.pct)+' · '+MN[last.m]+' '+last.y+' · '+fmtM(last.saldo)+' cartera';
+  const expDiff=last.venc-prev.venc;
+  const expDelta=document.getElementById('kExpDelta');
+  expDelta.textContent=sign(expDiff)+fmtK(Math.abs(expDiff))+' vs mes ant.';
+  expDelta.className='kpi-delta '+(expDiff>0?'delta-up':'delta-down');
+
+  document.getElementById('kMax').textContent=fmt(worstInFilter.pct);
+  document.getElementById('kMax').style.color='#dc2626';
+  document.getElementById('kMaxMeta').textContent=MN[worstInFilter.m]+' '+worstInFilter.y+' · '+fmtK(worstInFilter.venc);
+
+  const allAvg=RAW.map(d=>d.pct).reduce((a,b)=>a+b)/RAW.length;
+  const avgDelta=document.getElementById('kAvgDelta');
+  if(fd.length<RAW.length){
+    const diff=avg-allAvg;
+    avgDelta.textContent=sign(diff)+fmt(Math.abs(diff))+' vs promedio global';
+    avgDelta.className='kpi-delta '+(diff>0?'delta-up':'delta-down');
+  } else {avgDelta.textContent='';}
+}
+
+// ── INSIGHTS ──
+function updateInsights(){
+  const fd=filtered();
+  const last3=RAW.slice(-3);
+  const lastD=RAW[RAW.length-1];
+  const prevD=RAW[RAW.length-2];
+  const momPct=lastD.pct-prevD.pct;
+  
+  // Insight 1: tendencia reciente
+  const allBelow=last3.every(d=>d.pct<=4.99);
+  if(allBelow){
+    document.getElementById('ins1Title').textContent='Racha positiva activa';
+    document.getElementById('ins1Body').innerHTML=`Los últimos 3 meses cierran bajo objetivo: <strong>${last3.map(d=>MN[d.m]+' '+fmt(d.pct)).join(' → ')}</strong>. Primera racha sostenida desde 2022. Si Jun-26 continúa la tendencia, sería el mejor período de la serie completa.`;
+  } else {
+    document.getElementById('ins1Title').textContent='Señal positiva reciente';
+    document.getElementById('ins1Body').innerHTML=`Mar-May 2026: <strong>2,4% → 3,3% → 3,8%</strong>. Mejor trimestre desde 2022. La cartera <strong>creció $3M</strong> desde ese período pero el monto vencido cayó $1,1M — primera señal de gestión eficiente sobre volumen mayor.`;
+  }
+
+  // Insight 2: riesgo ponderado
+  const best22=RAW.find(d=>d.y===2022&&d.m===4);
+  const curLast=RAW[RAW.length-1];
+  const diff=curLast.venc-best22.venc;
+  document.getElementById('ins2Body').innerHTML=
+    `Abr-2022: <strong>3,1% sobre $20,3M = $637K vencidos</strong>. May-2026: <strong>3,8% sobre $23,0M = $873K vencidos</strong>. El porcentaje es <em>peor</em> en 2022 pero hay <strong>$236K más de exposición real hoy</strong> por el crecimiento del portafolio. El % no cuenta toda la historia.`;
+
+  // Insight 3: tendencia estructural
+  const years={};
+  RAW.forEach(d=>{if(!years[d.y])years[d.y]=[];years[d.y].push(d.pct);});
+  const yAvgs=Object.keys(years).sort().map(y=>({y,avg:years[y].reduce((a,b)=>a+b)/years[y].length}));
+  const trend=yAvgs.map(ya=>`<strong>${ya.y}:</strong> ${fmt(ya.avg)}`).join(' → ');
+  document.getElementById('ins3Body').innerHTML=`Promedio anual: ${trend}. La cartera opera <strong>estructuralmente fuera de objetivo</strong> desde 2023. Solo 2022 estuvo cerca. 2024 fue el peor año con pico de 15% en sep.`;
+}
+
+// ── YEAR SUMMARY ──
+function buildYearSummary(){
+  const c=document.getElementById('yearSummary');c.innerHTML='';
+  const years={};
+  RAW.forEach(d=>{if(!years[d.y])years[d.y]=[];years[d.y].push(d);});
+  Object.keys(years).sort().forEach(yr=>{
+    const ds=years[yr];
+    const avg=ds.reduce((a,d)=>a+d.pct,0)/ds.length;
+    const minD=ds.reduce((a,d)=>d.pct<a.pct?d:a);
+    const maxD=ds.reduce((a,d)=>d.pct>a.pct?d:a);
+    const okCount=ds.filter(d=>d.pct<=4.99).length;
+    const col=avg<=4.99?'#059669':avg<=7?'#d97706':'#dc2626';
+    const pct=Math.min(avg/16*100,100);
+    const div=document.createElement('div');
+    div.className='yr-card';
+    div.innerHTML=`
+      <div class="yr-card-year">${yr}${ds.length<12?'*':''}</div>
+      <div class="yr-card-val" style="color:${col}">${fmt(avg)}</div>
+      <div class="yr-track"><div class="yr-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="yr-detail">
+        Mín <span style="color:#059669">${fmt(minD.pct)}</span> (${MN[minD.m]})<br>
+        Máx <span style="color:#dc2626">${fmt(maxD.pct)}</span> (${MN[maxD.m]})<br>
+        OK: ${okCount}/${ds.length} meses
+      </div>`;
+    div.onclick=()=>{
+      selectedYears=new Set([parseInt(yr)]);
+      buildFilters();refresh();
+    };
+    c.appendChild(div);
+  });
+}
+
+// ── HEATMAP ──
+function buildHeatmap(){
+  const g=document.getElementById('hmGrid');g.innerHTML='';
+  const blank=document.createElement('div');g.appendChild(blank);
+  MN.slice(1).forEach(mn=>{
+    const h=document.createElement('div');h.className='hm-head';h.textContent=mn.slice(0,1);g.appendChild(h);
+  });
+  YEARS.forEach(yr=>{
+    const yrDiv=document.createElement('div');yrDiv.className='hm-yr';yrDiv.textContent=yr+(yr===2026?'*':'');g.appendChild(yrDiv);
+    for(let mo=1;mo<=12;mo++){
+      const d=RAW.find(r=>r.y===yr&&r.m===mo);
+      if(!d){const e=document.createElement('div');e.className='hm-empty';g.appendChild(e);continue;}
+      const cell=document.createElement('div');cell.className='hm-cell';
+      const bg=semColor(d.pct);
+      const isMid=d.pct>4.0&&d.pct<=4.99;
+      cell.style.background=bg+(isMid?'dd':'');
+      if(isMid)cell.style.outline='2px solid #d97706';
+      const textCol=d.pct>4.0?'#fff':'#fff';
+      const amberCol=isMid?'#fef3c7':textCol;
+      cell.innerHTML=`<span class="pct-val" style="color:${amberCol}">${fmt(d.pct,1).replace('%','')}</span><span class="mon-val" style="color:${amberCol}">%</span>`;
+      // Tooltip
+      const prev=RAW[RAW.indexOf(d)-1];
+      const mom=prev?d.pct-prev.pct:null;
+      const yoyD=RAW.find(r=>r.y===yr-1&&r.m===mo);
+      const yoy=yoyD?d.pct-yoyD.pct:null;
+      cell.innerHTML+=`<div class="cell-tooltip">
+        <div class="tt-head">${MN[d.m]} ${d.y}</div>
+        <div class="tt-row">% vencido <span>${fmt(d.pct)}</span></div>
+        <div class="tt-row">Vencido <span>${fmtK(d.venc)}</span></div>
+        <div class="tt-row">Saldo total <span>${fmtM(d.saldo)}</span></div>
+        ${mom!==null?`<div class="tt-row">vs mes ant. <span style="color:${mom>0?'#fca5a5':'#6ee7b7'}">${sign(mom)}${fmt(Math.abs(mom))}</span></div>`:''}
+        ${yoy!==null?`<div class="tt-row">vs año ant. <span style="color:${yoy>0?'#fca5a5':'#6ee7b7'}">${sign(yoy)}${fmt(Math.abs(yoy))}</span></div>`:''}
+      </div>`;
+      cell.onclick=()=>openDetail(d);
+      g.appendChild(cell);
+    }
+  });
+}
+
+// ── DETAIL PANEL ──
+function openDetail(d){
+  const idx=RAW.indexOf(d);
+  const prev=idx>0?RAW[idx-1]:null;
+  const yoyD=RAW.find(r=>r.y===d.y-1&&r.m===d.m);
+  const col=semColor(d.pct);
+  document.getElementById('dpTitle').textContent=MN[d.m]+' '+d.y;
+  document.getElementById('dpPct').textContent=fmt(d.pct);
+  document.getElementById('dpPct').style.color=col;
+  document.getElementById('dpPctSub').textContent=d.pct<=4.99?'✓ Dentro del objetivo':'✗ Fuera del objetivo corporativo';
+  document.getElementById('dpMonto').textContent=fmtK(d.venc);
+  document.getElementById('dpMontoSub').textContent='Sobre saldo total '+fmtM(d.saldo);
+  document.getElementById('dpSaldo').textContent=fmtM(d.saldo);
+  document.getElementById('dpSaldoSub').textContent=fmtK(d.vig)+' vigente · '+fmtK(d.venc)+' vencido';
+  if(prev){
+    const mom=d.pct-prev.pct;
+    document.getElementById('dpMom').textContent=sign(mom)+fmt(Math.abs(mom));
+    document.getElementById('dpMom').style.color=mom>0?'#dc2626':'#059669';
+    document.getElementById('dpMomSub').textContent=`vs ${MN[prev.m]} ${prev.y} (${fmt(prev.pct)})`;
+  }
+  if(yoyD){
+    const yoy=d.pct-yoyD.pct;
+    document.getElementById('dpYoy').textContent=sign(yoy)+fmt(Math.abs(yoy));
+    document.getElementById('dpYoy').style.color=yoy>0?'#dc2626':'#059669';
+    document.getElementById('dpYoySub').textContent=`vs ${MN[yoyD.m]} ${yoyD.y} (${fmt(yoyD.pct)})`;
+  }
+  // Insight automático
+  let insight='';
+  if(d.pct<=4.0) insight=`<strong>Mes óptimo.</strong> Por debajo del umbral interno de 4%. Un resultado de ${fmt(d.pct)} sobre ${fmtM(d.saldo)} de cartera representa ${fmtK(d.venc)} en vencimiento — nivel de control sano.`;
+  else if(d.pct<=4.99) insight=`<strong>Dentro del objetivo.</strong> El mes cierra en zona segura (4,01–4,99%). Aunque cumple el umbral corporativo, hay ${fmtK(d.venc)} de exposición. Mantener la presión para bajar al umbral interno de 4%.`;
+  else if(d.pct<=7.0) insight=`<strong>Alerta.</strong> El ${fmt(d.pct)} supera el objetivo corporativo. Con ${fmtK(d.venc)} vencidos sobre ${fmtM(d.saldo)} de cartera, se requiere gestión activa. Analizar cadenas/CEDIs con mayor concentración.`;
+  else if(d.pct<=10.0) insight=`<strong>Riesgo alto.</strong> ${fmt(d.pct)} de vencimiento implica ${fmtK(d.venc)} en riesgo real. La cartera de ${fmtM(d.saldo)} está bajo presión significativa. Revisar política de crédito y cobranza activa.`;
+  else insight=`<strong>Nivel crítico.</strong> ${fmt(d.pct)} es el peor rango de la escala. ${fmtK(d.venc)} vencidos sobre ${fmtM(d.saldo)} de cartera. Se requieren acciones correctivas inmediatas: análisis de causas, provisiones y plan de contingencia.`;
+  document.getElementById('dpInsight').innerHTML=insight;
+  document.getElementById('detailPanel').classList.add('open');
+}
+function closeDetail(){document.getElementById('detailPanel').classList.remove('open');}
+
+// ── CHARTS ──
+function getFilteredForChart(){
+  return RAW.filter(d=>selectedYears.has(d.y));
+}
+
+function buildMainChart(){
+  const fd=getFilteredForChart();
+  const labels=fd.map(d=>`${MN[d.m].slice(0,3)}'${String(d.y).slice(2)}`);
+  const data=metric==='pct'?fd.map(d=>d.pct):fd.map(d=>d.venc);
+  const ptColors=fd.map(d=>semColor(d.pct));
+  const ptSizes=fd.map(d=>d.pct<=4.99?5:3.5);
+  const datasets=[
+    {label:metric==='pct'?'% Vencido':'Monto vencido (K)',data,
+     borderColor:'#0033aa',backgroundColor:'rgba(0,51,170,0.06)',
+     borderWidth:2,pointBackgroundColor:ptColors,pointBorderColor:ptColors,
+     pointRadius:ptSizes,pointHoverRadius:7,fill:true,tension:0.3,spanGaps:true}
+  ];
+  if(showThresholds&&metric==='pct'){
+    datasets.push({label:'Obj 4,99%',data:Array(labels.length).fill(4.99),borderColor:'#d97706',borderWidth:1.5,borderDash:[6,3],pointRadius:0,fill:false});
+    datasets.push({label:'Umbral 4%',data:Array(labels.length).fill(4.0),borderColor:'#059669',borderWidth:1,borderDash:[3,3],pointRadius:0,fill:false});
+  }
+  const cfg={
+    type:'line',data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      onClick:(e,els)=>{if(els.length){openDetail(fd[els[0].index]);}},
+      plugins:{legend:{display:false},
+        tooltip:{backgroundColor:'#1e293b',titleColor:'#f8fafc',bodyColor:'#94a3b8',
+          borderColor:'#334155',borderWidth:1,
+          titleFont:{family:'IBM Plex Mono',size:11},bodyFont:{family:'IBM Plex Mono',size:10},
+          callbacks:{
+            title:ctx=>`${MN[fd[ctx[0].dataIndex].m]} ${fd[ctx[0].dataIndex].y}`,
+            label:ctx=>{const d=fd[ctx.dataIndex];
+              return metric==='pct'?[`% vencido: ${fmt(d.pct)}`,`Vencido: ${fmtK(d.venc)}`,`Saldo: ${fmtM(d.saldo)}`]:[`Vencido: ${fmtK(d.venc)}`,`% sobre cartera: ${fmt(d.pct)}`];}
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#94a3b8',font:{family:'IBM Plex Mono',size:9},autoSkip:true,maxTicksLimit:24,maxRotation:45},grid:{color:'rgba(0,0,0,0.04)'}},
+        y:{min:0,ticks:{color:'#94a3b8',font:{family:'IBM Plex Mono',size:10},callback:v=>metric==='pct'?v+'%':'$'+v+'K'},grid:{color:'rgba(0,0,0,0.04)'}}
+      }
+    }
+  };
+  if(mainChartObj){mainChartObj.destroy();}
+  mainChartObj=new Chart(document.getElementById('mainChart'),cfg);
+}
+
+function buildMontoChart(){
+  const fd=getFilteredForChart();
+  const labels=fd.map(d=>`${MN[d.m].slice(0,3)}'${String(d.y).slice(2)}`);
+  if(montoChartObj){montoChartObj.destroy();}
+  montoChartObj=new Chart(document.getElementById('montoChart'),{
+    type:'bar',
+    data:{labels,datasets:[{
+      label:'Monto vencido (USD K)',
+      data:fd.map(d=>d.venc),
+      backgroundColor:fd.map(d=>semColor(d.pct)+'cc'),
+      borderColor:fd.map(d=>semColor(d.pct)),
+      borderWidth:1,borderRadius:2,barPercentage:0.85
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      onClick:(e,els)=>{if(els.length)openDetail(fd[els[0].index]);},
+      plugins:{legend:{display:false},
+        tooltip:{backgroundColor:'#1e293b',titleColor:'#f8fafc',bodyColor:'#94a3b8',
+          borderColor:'#334155',borderWidth:1,
+          titleFont:{family:'IBM Plex Mono',size:11},bodyFont:{family:'IBM Plex Mono',size:10},
+          callbacks:{title:ctx=>`${MN[fd[ctx[0].dataIndex].m]} ${fd[ctx[0].dataIndex].y}`,
+            label:ctx=>{const d=fd[ctx.dataIndex];return[`Vencido: ${fmtK(d.venc)}`,`% sobre cartera: ${fmt(d.pct)}`,`Saldo total: ${fmtM(d.saldo)}`];}
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#94a3b8',font:{family:'IBM Plex Mono',size:9},autoSkip:true,maxTicksLimit:24,maxRotation:45},grid:{display:false}},
+        y:{ticks:{color:'#94a3b8',font:{family:'IBM Plex Mono',size:10},callback:v=>'$'+v+'K'},grid:{color:'rgba(0,0,0,0.04)'}}
+      }
+    }
+  });
+}
+
+function buildMomChart(){
+  const fd=getFilteredForChart();
+  const labels=fd.map(d=>`${MN[d.m].slice(0,3)}'${String(d.y).slice(2)}`);
+  const momData=fd.map((d,i)=>{
+    if(i===0) return null;
+    return +(d.pct-fd[i-1].pct).toFixed(2);
+  });
+  if(momChartObj){momChartObj.destroy();}
+  momChartObj=new Chart(document.getElementById('momChart'),{
+    type:'bar',
+    data:{labels,datasets:[{
+      label:'Δ pp vs mes anterior',
+      data:momData,
+      backgroundColor:momData.map(v=>v===null?'transparent':v>0?'rgba(220,38,38,0.65)':'rgba(5,150,105,0.65)'),
+      borderColor:momData.map(v=>v===null?'transparent':v>0?'#dc2626':'#059669'),
+      borderWidth:1,borderRadius:2,barPercentage:0.8
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      onClick:(e,els)=>{if(els.length)openDetail(fd[els[0].index]);},
+      plugins:{legend:{display:false},
+        tooltip:{backgroundColor:'#1e293b',titleColor:'#f8fafc',bodyColor:'#94a3b8',
+          borderColor:'#334155',borderWidth:1,
+          titleFont:{family:'IBM Plex Mono',size:11},bodyFont:{family:'IBM Plex Mono',size:10},
+          callbacks:{title:ctx=>`${MN[fd[ctx[0].dataIndex].m]} ${fd[ctx[0].dataIndex].y}`,
+            label:ctx=>{const v=momData[ctx.dataIndex];if(v===null)return'Primer mes';return`Δ: ${sign(v)}${fmt(Math.abs(v))} vs mes anterior`;}
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#94a3b8',font:{family:'IBM Plex Mono',size:9},autoSkip:true,maxTicksLimit:24,maxRotation:45},grid:{display:false}},
+        y:{ticks:{color:'#94a3b8',font:{family:'IBM Plex Mono',size:10},callback:v=>sign(v)+Math.abs(v)+'pp'},grid:{color:'rgba(0,0,0,0.04)'},
+           afterDataLimits(axis){axis.min=Math.min(axis.min,-1);axis.max=Math.max(axis.max,1);}
+        }
+      }
+    }
+  });
+}
+
+// ── REFRESH ALL ──
+function refresh(){
+  updateKPIs();
+  updateInsights();
+  buildMainChart();
+  buildMontoChart();
+  buildMomChart();
+}
+
+// ── INIT ──
+buildFilters();
+buildYearSummary();
+buildHeatmap();
+refresh();
+</script>
+</body>
+</html>
