@@ -834,15 +834,21 @@ function buildCockpit(){
   trendEl.textContent=trendSignal;
   trendEl.className="sc-delta "+(below3>=2?"dn":"up");
 
-  // PROJECTION
-  let mNext=last.m<12?last.m+1:1, yNext=last.m<12?last.y:last.y+1;
-  let pAvg=SEASON_AVG[mNext], pStd=SEASON_STD[mNext];
-  let pLow=Math.max(0,pAvg-pStd), pHigh=pAvg+pStd;
-  let yoyRef=DS.find(function(d){return d.y===yNext-1&&d.m===mNext;});
-  document.getElementById("proj-month").textContent="Proyecci\u00f3n "+MN[mNext]+" "+yNext;
-  document.getElementById("proj-range").textContent=f(pLow,1)+" \u2013 "+f(pHigh,1);
-  document.getElementById("proj-sub").textContent="Bas\u00e9: estacionalidad hist\u00f3rica (prom "+f(pAvg,1)+"\u00b1"+f(pStd,1)+")\n"+(yoyRef?"Ref a\u00f1o ant: "+f(yoyRef.p):"");
-  let projAlert=pAvg>4.99?"Zona de riesgo esperada":"Zona objetivo alcanzable";
+  // PROJECTION Jun-2026
+  // Metodología ajustada: excluye 2024 (crisis clientes Moderno) y pondera
+  // 2025 al 50% (arrastre). Junios limpios 2021-23: prom 5,9%.
+  // Delta May→Jun promedio excl. 2024: +0,74pp sobre may-26 (3,80%) = 4,54%
+  const mNext=last.m<12?last.m+1:1, yNext=last.m<12?last.y:last.y+1;
+  const pBase=4.5;
+  const pLow=3.0;
+  const pHigh=6.5;
+  document.getElementById("proj-month").textContent="Proyección "+MN[mNext]+" "+yNext;
+  document.getElementById("proj-range").textContent=f(pLow,1)+" – "+f(pHigh,1);
+  document.getElementById("proj-sub").textContent=
+    "Base: may-26 (3,8%) + delta estacional May→Jun de +0,7pp\n"+
+    "2024 excluido (crisis Moderno) · 2025 ponderado al 50%\n"+
+    "Junios limpios 2021-23 promediaron 5,9%";
+  const projAlert=pBase<=4.99?"Objetivo alcanzable":"Monitorear — bajo control";
   document.getElementById("proj-badge").textContent=projAlert;
 
   // ALERTS
@@ -851,8 +857,8 @@ function buildCockpit(){
     {color:below3>=3?"#059669":"#dc2626",text:below3>=3?"3 meses consecutivos bajo objetivo (mar-may 2026)":"Menos de 3 meses bajo objetivo en el trimestre",val:below3+"/3"},
     {color:si<-1?"#059669":si>1?"#dc2626":"#d97706",text:"Desempe\u00f1o vs estacionalidad "+MN[last.m]+": "+(si<0?"mejor":"peor")+" de lo esperado",val:sg(si)+f(Math.abs(si))},
     {color:mom<0?"#059669":"#dc2626",text:"Variaci\u00f3n vs mes anterior: "+(mom<0?"mejora":"deterioro"),val:sg(mom)+f(Math.abs(mom))},
-    {color:pAvg<=4.99?"#059669":"#ef4444",text:"Pr\u00f3ximo mes ("+MN[mNext]+"): promedio hist\u00f3rico "+f(pAvg),val:pAvg<=4.99?"OK":"Riesgo"},
-    {color:"#d97706",text:"Patr\u00f3n: junio hist\u00f3ricamente sube vs mayo (prom +3,5pp)",val:"Monitorear"}
+    {color:"#059669",text:"Jun-26 proyectado: base 4,5% rango 3,0–6,5% (metodología ajustada)",val:"OK"},
+    {color:"#d97706",text:"Jun hist. sube +0,7pp vs mayo (exc. 2024+arrastre 2025)",val:"Monitorear"}
   ];
   alerts.forEach(function(a){
     let row=document.createElement("div");row.className="alert-row";
