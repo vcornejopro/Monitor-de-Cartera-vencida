@@ -22,7 +22,7 @@
   --r8:8px;--s1:0 1px 3px rgba(0,0,0,.06);--s2:0 4px 16px rgba(0,0,0,.08);--s3:0 8px 32px rgba(0,0,0,.12);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:180px;}
 body{font-family:var(--sans);background:var(--gray0);color:var(--gray9);font-size:14px;line-height:1.5;min-width:900px}
 
 /* TOP BAR */
@@ -46,7 +46,7 @@ body{font-family:var(--sans);background:var(--gray0);color:var(--gray9);font-siz
 .tab{padding:9px 16px;font-size:11px;font-weight:500;color:var(--gray5);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;user-select:none}
 .tab:hover{color:var(--blue)}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;background:var(--w)}
-.fbar{background:var(--w);border-bottom:1px solid var(--gray2);padding:7px 28px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.fbar{background:var(--w);border-bottom:1px solid var(--gray2);padding:7px 28px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:137px;z-index:140;}
 .fl{font-size:9px;font-weight:700;color:var(--gray5);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
 .ybtn{font-family:var(--mono);font-size:10px;font-weight:500;padding:3px 9px;border-radius:4px;border:1.5px solid var(--gray2);background:var(--w);color:var(--gray7);cursor:pointer;transition:all .15s}
 .ybtn.on{border-color:var(--blue);background:var(--bl);color:var(--blue)}
@@ -235,6 +235,7 @@ button:focus-visible,input:focus-visible{outline:2px solid #0033aa;outline-offse
 /* ── RESPONSIVE: TABLET (<=768px) ── */
 @media(max-width:768px){
   body{min-width:320px;}
+  html{scroll-padding-top:168px;}
   /* topbar shrinks to 52px on mobile */
   .topbar{padding:0 14px;height:52px;}
   .tb-sub{display:none;}
@@ -242,11 +243,11 @@ button:focus-visible,input:focus-visible{outline:2px solid #0033aa;outline-offse
   /* recalculate sticky tops based on 52px topbar */
   .seg-bar{top:52px;padding:0 10px;}
   .tabs{top:96px;padding:0 10px;}  /* 52 + ~44 seg-bar */
-  .fbar{top:133px;padding:6px 12px;gap:8px;}  /* 52+44+37 */
+  .fbar{top:128px;padding:6px 12px;gap:8px;}  /* 52+41+35 */
   .tab{padding:8px 11px;font-size:10px;}
   .seg-btn{padding:10px 11px;font-size:11px;}
   /* page top padding accounts for all sticky bars */
-  .page{padding:16px 12px 48px;}
+  .page{padding:24px 12px 48px;}
   .cockpit-top{grid-template-columns:1fr 1fr;}
   .proj-card{grid-column:1/-1;}
   .kgrid{grid-template-columns:1fr 1fr;}
@@ -269,6 +270,7 @@ button:focus-visible,input:focus-visible{outline:2px solid #0033aa;outline-offse
 
 /* ── RESPONSIVE: MOBILE (<=480px) ── */
 @media(max-width:480px){
+  html{scroll-padding-top:165px;}
   body{font-size:13px;}
   /* On very small screens, hide seg-bar labels, keep icons */
   .seg-pill{display:none;}
