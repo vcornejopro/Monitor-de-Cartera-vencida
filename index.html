@@ -235,14 +235,18 @@ button:focus-visible,input:focus-visible{outline:2px solid #0033aa;outline-offse
 /* ── RESPONSIVE: TABLET (<=768px) ── */
 @media(max-width:768px){
   body{min-width:320px;}
+  /* topbar shrinks to 52px on mobile */
   .topbar{padding:0 14px;height:52px;}
   .tb-sub{display:none;}
   .tb-right{font-size:9px;line-height:1.4;}
-  .seg-bar,.tabs{padding:0 10px;}
+  /* recalculate sticky tops based on 52px topbar */
+  .seg-bar{top:52px;padding:0 10px;}
+  .tabs{top:96px;padding:0 10px;}  /* 52 + ~44 seg-bar */
+  .fbar{top:133px;padding:6px 12px;gap:8px;}  /* 52+44+37 */
   .tab{padding:8px 11px;font-size:10px;}
   .seg-btn{padding:10px 11px;font-size:11px;}
-  .fbar{padding:6px 12px;gap:8px;}
-  .page{padding:12px 12px 40px;}
+  /* page top padding accounts for all sticky bars */
+  .page{padding:16px 12px 48px;}
   .cockpit-top{grid-template-columns:1fr 1fr;}
   .proj-card{grid-column:1/-1;}
   .kgrid{grid-template-columns:1fr 1fr;}
@@ -266,6 +270,8 @@ button:focus-visible,input:focus-visible{outline:2px solid #0033aa;outline-offse
 /* ── RESPONSIVE: MOBILE (<=480px) ── */
 @media(max-width:480px){
   body{font-size:13px;}
+  /* On very small screens, hide seg-bar labels, keep icons */
+  .seg-pill{display:none;}
   .cockpit-top{grid-template-columns:1fr;}
   .proj-card{grid-column:auto;}
   .yrsum{grid-template-columns:repeat(2,1fr);}
